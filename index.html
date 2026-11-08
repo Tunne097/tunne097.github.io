@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MJSoul Offline Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased selection:bg-cyan-500/30">
+
+    <div class="ambient-bg"></div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] glass-panel px-6 py-3 rounded-full text-cyan-400 font-semibold opacity-0 pointer-events-none transition-opacity duration-300">
+        Message
+    </div>
+
+    <!-- ==================== SETUP SCREEN ==================== -->
+    <div id="screen-setup" class="screen active items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-emerald-500"></div>
+            
+            <div class="flex flex-col items-center justify-center mb-8 space-y-2">
+                <svg class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <h1 class="text-3xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">MJSoul Tracker</h1>
+                <p class="text-slate-400 text-sm">Nhập tên người chơi (Bắt đầu từ Nhà Cái - Đông)</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="relative">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider absolute -top-2 left-3 bg-slate-900 px-1 rounded">Người chơi 1 (Đông)</label>
+                    <input type="text" id="p0-name" value="Người chơi 1" class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-cyan-500 transition-all text-lg">
+                </div>
+                <div class="relative">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider absolute -top-2 left-3 bg-slate-900 px-1 rounded">Người chơi 2 (Nam)</label>
+                    <input type="text" id="p1-name" value="Người chơi 2" class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-cyan-500 transition-all text-lg">
+                </div>
+                <div class="relative">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider absolute -top-2 left-3 bg-slate-900 px-1 rounded">Người chơi 3 (Tây)</label>
+                    <input type="text" id="p2-name" value="Người chơi 3" class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-cyan-500 transition-all text-lg">
+                </div>
+                <div class="relative">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider absolute -top-2 left-3 bg-slate-900 px-1 rounded">Người chơi 4 (Bắc)</label>
+                    <input type="text" id="p3-name" value="Người chơi 4" class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 outline-none focus:border-cyan-500 transition-all text-lg">
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="mt-8 w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all flex justify-center items-center space-x-2">
+                <span>BẮT ĐẦU</span>
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN TABLE SCREEN ==================== -->
+    <div id="screen-main" class="screen flex-col overflow-hidden relative pb-24">
+        
+        <!-- Table Area -->
+        <div class="flex-1 flex items-center justify-center p-2 md:p-6 w-full max-w-4xl mx-auto h-[80vh]">
+            <div class="w-full aspect-square grid grid-cols-3 grid-rows-3 gap-2 md:gap-6 relative">
+                
+                <!-- Central Info Hub -->
+                <div class="col-start-2 row-start-2 flex items-center justify-center relative z-10">
+                    <div class="absolute inset-0 glass-panel rounded-2xl flex flex-col items-center justify-center p-2 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
+                        <div id="ui-round-info" class="text-cyan-400 font-bold text-xl md:text-2xl mb-2">Đông 1</div>
+                        <div class="flex space-x-4 mb-2">
+                            <div class="flex flex-col items-center">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Honba</span>
+                                <div class="bg-slate-800 px-2 md:px-3 py-1 rounded border border-slate-600">
+                                    <span id="ui-honba" class="font-mono text-lg text-slate-200">0</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Riichi</span>
+                                <div class="bg-slate-800 px-2 md:px-3 py-1 rounded border border-slate-600">
+                                    <span id="ui-riichi" class="font-mono text-lg text-red-400">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Players (0: Bottom, 1: Right, 2: Top, 3: Left) -->
+                <!-- P0 -->
+                <div class="col-start-2 row-start-3 flex items-center justify-center p-1 z-20">
+                    <div id="card-p0" class="w-full h-full max-h-[140px] flex flex-col justify-between glass-panel rounded-xl p-3 border-2 transition-all">
+                        <div class="flex justify-between items-start mb-1">
+                            <div id="name-p0" class="truncate font-bold text-sm md:text-base">P1</div>
+                            <div id="wind-p0" class="text-xs font-bold px-2 py-1 rounded border">Đông</div>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center">
+                            <span id="score-p0" class="font-mono text-xl md:text-2xl font-bold text-white">25,000</span>
+                        </div>
+                        <button onclick="declareRiichi(0)" class="w-full py-1 mt-1 bg-red-900/30 hover:bg-red-800/60 text-red-300 text-xs rounded border border-red-800/50 transition-colors">Riichi (-1000)</button>
+                    </div>
+                </div>
+
+                <!-- P1 -->
+                <div class="col-start-3 row-start-2 flex items-center justify-center p-1 z-20">
+                    <div id="card-p1" class="w-full h-full max-h-[140px] flex flex-col justify-between glass-panel rounded-xl p-3 border-2 transition-all">
+                        <div class="flex justify-between items-start mb-1">
+                            <div id="name-p1" class="truncate font-bold text-sm md:text-base">P2</div>
+                            <div id="wind-p1" class="text-xs font-bold px-2 py-1 rounded border">Nam</div>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center">
+                            <span id="score-p1" class="font-mono text-xl md:text-2xl font-bold text-white">25,000</span>
+                        </div>
+                        <button onclick="declareRiichi(1)" class="w-full py-1 mt-1 bg-red-900/30 hover:bg-red-800/60 text-red-300 text-xs rounded border border-red-800/50 transition-colors">Riichi (-1000)</button>
+                    </div>
+                </div>
+
+                <!-- P2 -->
+                <div class="col-start-2 row-start-1 flex items-center justify-center p-1 z-20">
+                    <div id="card-p2" class="w-full h-full max-h-[140px] flex flex-col justify-between glass-panel rounded-xl p-3 border-2 transition-all">
+                        <div class="flex justify-between items-start mb-1">
+                            <div id="name-p2" class="truncate font-bold text-sm md:text-base">P3</div>
+                            <div id="wind-p2" class="text-xs font-bold px-2 py-1 rounded border">Tây</div>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center">
+                            <span id="score-p2" class="font-mono text-xl md:text-2xl font-bold text-white">25,000</span>
+                        </div>
+                        <button onclick="declareRiichi(2)" class="w-full py-1 mt-1 bg-red-900/30 hover:bg-red-800/60 text-red-300 text-xs rounded border border-red-800/50 transition-colors">Riichi (-1000)</button>
+                    </div>
+                </div>
+
+                <!-- P3 -->
+                <div class="col-start-1 row-start-2 flex items-center justify-center p-1 z-20">
+                    <div id="card-p3" class="w-full h-full max-h-[140px] flex flex-col justify-between glass-panel rounded-xl p-3 border-2 transition-all">
+                        <div class="flex justify-between items-start mb-1">
+                            <div id="name-p3" class="truncate font-bold text-sm md:text-base">P4</div>
+                            <div id="wind-p3" class="text-xs font-bold px-2 py-1 rounded border">Bắc</div>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center">
+                            <span id="score-p3" class="font-mono text-xl md:text-2xl font-bold text-white">25,000</span>
+                        </div>
+                        <button onclick="declareRiichi(3)" class="w-full py-1 mt-1 bg-red-900/30 hover:bg-red-800/60 text-red-300 text-xs rounded border border-red-800/50 transition-colors">Riichi (-1000)</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Action Bar (Bottom Fixed) -->
+        <div class="fixed bottom-0 left-0 w-full glass-panel border-t border-slate-700/50 p-3 md:p-4 z-40 rounded-t-2xl">
+            <div class="max-w-4xl mx-auto flex flex-wrap gap-2 justify-center">
+                <button onclick="openModal('modal-ron')" class="flex-1 min-w-[80px] py-3 rounded-lg bg-gradient-to-b from-red-600/30 to-red-900/50 border border-red-500/50 hover:bg-red-700/50 text-red-100 font-bold text-sm md:text-base shadow-lg transition-all">RON</button>
+                
+                <button onclick="openModal('modal-tsumo')" class="flex-1 min-w-[80px] py-3 rounded-lg bg-gradient-to-b from-cyan-600/30 to-cyan-900/50 border border-cyan-500/50 hover:bg-cyan-700/50 text-cyan-100 font-bold text-sm md:text-base shadow-lg transition-all">TSUMO</button>
+                
+                <button onclick="openModal('modal-ryuukyoku')" class="flex-1 min-w-[80px] py-3 rounded-lg bg-gradient-to-b from-yellow-600/30 to-yellow-900/50 border border-yellow-500/50 hover:bg-yellow-700/50 text-yellow-100 font-bold text-sm md:text-base shadow-lg transition-all">HÒA</button>
+                
+                <button onclick="openModal('modal-options')" class="px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-500/50 hover:bg-slate-600/50 text-white font-bold flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== END SCREEN (FIN) ==================== -->
+    <div id="screen-end" class="screen items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg p-8 rounded-3xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-yellow-600"></div>
+            
+            <div class="text-center mb-8">
+                <svg class="w-16 h-16 text-yellow-400 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                <h2 class="text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">FIN</h2>
+                <p class="text-slate-400 mt-2">Kết quả chung cuộc</p>
+            </div>
+
+            <div id="end-rankings" class="space-y-3 mb-8">
+                <!-- Injected via JS -->
+            </div>
+
+            <button onclick="resetApp()" class="w-full bg-slate-700/80 hover:bg-slate-600 text-white font-bold py-4 rounded-xl transition-all border border-slate-500">
+                CHƠI VÁN MỚI
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+    <div id="modal-container" class="modal-overlay">
+        
+        <!-- RON MODAL -->
+        <div id="modal-ron" class="glass-modal rounded-2xl modal-content">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-red-400">Khai báo RON</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+                <div class="text-xs text-slate-400 italic mb-2">* Điểm chưa bao gồm Honba</div>
+                
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Người thắng (Chọn nhiều nếu Multiple Ron)</label>
+                    <div id="ron-winners-container" class="grid grid-cols-2 gap-2"></div>
+                </div>
+                
+                <div id="ron-points-section" class="space-y-2 hidden bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                    <label class="block text-sm font-semibold">Nhập điểm cơ bản:</label>
+                    <div id="ron-points-inputs" class="space-y-2"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-red-300">Người bị Ron</label>
+                    <div id="ron-loser-container" class="grid grid-cols-2 gap-2"></div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+                <button onclick="submitRon()" class="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold">Xác nhận</button>
+            </div>
+        </div>
+
+        <!-- TSUMO MODAL -->
+        <div id="modal-tsumo" class="glass-modal rounded-2xl modal-content">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-cyan-400">Khai báo TSUMO</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div class="text-xs text-slate-400 italic">* Điểm chưa bao gồm Honba</div>
+                
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Người Tsumo</label>
+                    <div id="tsumo-winner-container" class="grid grid-cols-2 gap-2"></div>
+                </div>
+
+                <div id="tsumo-points-section" class="space-y-3 hidden bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                    <div id="tsumo-dealer-inputs" class="hidden">
+                        <label class="block text-sm text-slate-300 mb-1">Điểm mỗi nhà con trả (ALL):</label>
+                        <input type="number" id="tsumo-val-all" class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 outline-none focus:border-cyan-500">
+                    </div>
+                    <div id="tsumo-nondealer-inputs" class="hidden space-y-3">
+                        <div>
+                            <label class="block text-sm text-slate-300 mb-1">Điểm nhà cái trả:</label>
+                            <input type="number" id="tsumo-val-dealer" class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-300 mb-1">Điểm nhà con trả:</label>
+                            <input type="number" id="tsumo-val-nondealer" class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 outline-none focus:border-cyan-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+                <button onclick="submitTsumo()" class="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold">Xác nhận</button>
+            </div>
+        </div>
+
+        <!-- RYUUKYOKU MODAL -->
+        <div id="modal-ryuukyoku" class="glass-modal rounded-2xl modal-content">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-yellow-400">Ryuukyoku (Hòa)</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-4">
+                <label class="block text-sm font-semibold mb-3">Chọn người Tenpai (Chờ bài):</label>
+                <div id="ryuu-tenpai-container" class="space-y-2"></div>
+                <p class="text-xs text-slate-400 mt-4">* Quỹ 3000 điểm chia đều. Honba +1.</p>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+                <button onclick="submitRyuukyoku()" class="px-6 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg font-bold">Xác nhận</button>
+            </div>
+        </div>
+
+        <!-- OPTIONS MODAL (For Tochuu Ryuukyoku, Nagashi Mangan, End) -->
+        <div id="modal-options" class="glass-modal rounded-2xl modal-content">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold">Tùy chọn khác</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-4 space-y-3">
+                <button onclick="openModal('modal-tochuu')" class="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl hover:bg-slate-700 text-left font-semibold">
+                    Tochuu Ryuukyoku (Hòa giữa ván)
+                </button>
+                <button onclick="openModal('modal-nagashi')" class="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl hover:bg-slate-700 text-left font-semibold text-emerald-400">
+                    Nagashi Mangan
+                </button>
+                <div class="h-px bg-slate-700 my-2"></div>
+                <button onclick="endGame()" class="w-full p-3 bg-red-900/30 border border-red-700 rounded-xl hover:bg-red-800/50 text-center font-bold text-red-400">
+                    KẾT THÚC TRẬN ĐẤU SỚM
+                </button>
+            </div>
+        </div>
+
+        <!-- TOCHUU RYUUKYOKU CONFIRM -->
+        <div id="modal-tochuu" class="glass-modal rounded-2xl modal-content">
+            <div class="p-6 text-center">
+                <h3 class="text-xl font-bold mb-2">Tochuu Ryuukyoku</h3>
+                <p class="text-slate-300 text-sm mb-6">Xác nhận hòa giữa chừng? (Không chia điểm, chuyển ván, Honba +1).</p>
+                <div class="flex space-x-3 justify-center">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded-lg">Hủy</button>
+                    <button onclick="submitTochuu()" class="px-4 py-2 bg-white text-black font-bold rounded-lg">Xác nhận Hòa</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAGASHI MANGAN -->
+        <div id="modal-nagashi" class="glass-modal rounded-2xl modal-content">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-emerald-400">Nagashi Mangan</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-4">
+                <label class="block text-sm font-semibold mb-3">Người đạt Nagashi Mangan:</label>
+                <div id="nagashi-winner-container" class="grid grid-cols-2 gap-2"></div>
+                <p class="text-xs text-slate-400 mt-4">* Tự động tính điểm Mangan Tsumo (4000 all / 4000-2000). Honba +1.</p>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+                <button onclick="submitNagashi()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold">Xác nhận</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script src="mjsoul.js"></script>
+</body>
+</html>
