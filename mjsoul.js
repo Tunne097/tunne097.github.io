@@ -397,6 +397,12 @@
                 dealerTenpai = true; // everyone tenpai, dealer stays
             }
 
+            // Honba increases after every exhaustive draw, even when the
+            // dealer is no-ten and the dealer rotates.
+            if (!dealerTenpai) {
+                honba++;
+            }
+
             closeModal();
             nextHand(dealerTenpai);
         }
