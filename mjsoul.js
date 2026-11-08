@@ -6,6 +6,7 @@
         let round = { wind: 0, hand: 1 }; // wind 0=East, hand 1-4
         let honba = 0;
         let riichiPool = 0;
+        let actionHistory = [];
 
         // Modal States
         let currentRonWinners = [];
@@ -38,6 +39,34 @@
             return value;
         }
 
+        function saveUndoState() {
+            actionHistory.push({
+                players: players.map(player => ({ ...player })),
+                round: { ...round },
+                honba,
+                riichiPool
+            });
+        }
+
+        function rewind() {
+            if (actionHistory.length === 0) {
+                showToast("Không có hành động để hoàn tác");
+                closeModal();
+                return;
+            }
+
+            const previousState = actionHistory.pop();
+            players = previousState.players.map(player => ({ ...player }));
+            round = { ...previousState.round };
+            honba = previousState.honba;
+            riichiPool = previousState.riichiPool;
+
+            closeModal();
+            document.getElementById('screen-end').classList.remove('active');
+            document.getElementById('screen-main').classList.add('active');
+            updateTableUI();
+        }
+
         function startGame() {
             players = [
                 { id: 0, name: document.getElementById('p0-name').value || 'P1', score: 25000, startWind: 0, riichi: false },
@@ -52,6 +81,7 @@
             round = { wind: 0, hand: 1 };
             honba = 0;
             riichiPool = 0;
+            actionHistory = [];
 
             document.getElementById('screen-setup').classList.remove('active');
             document.getElementById('screen-main').classList.add('active');
@@ -70,13 +100,6 @@
                     round.hand = 1;
                     round.wind++;
                 }
-                
-                // End game condition (South 4 ends)
-                // Assuming standard Hanchan: if round.wind > 1 (East=0, South=1, West=2), game ends.
-                if (round.wind > 1) {
-                    endGame();
-                    return;
-                }
 
                 // Rotate winds
                 players.forEach(p => {
@@ -86,6 +109,13 @@
                 // Honba resets to 0 when dealer passes naturally, wait, usually honba transfers?
                 // Actually, Honba resets to 0 if non-dealer wins. Handled in specific resolution functions.
             }
+
+            const hasQualifyingScore = players.some(p => p.score > 30000);
+            if ((round.wind >= 2 && hasQualifyingScore) || round.wind > 2) {
+                endGame();
+                return;
+            }
+
             players.forEach(p => p.riichi = false);
             updateTableUI();
         }
@@ -100,6 +130,7 @@
                 showToast("Không đủ điểm Riichi!");
                 return;
             }
+            saveUndoState();
             p.score -= 1000;
             riichiPool++;
             p.riichi = true;
@@ -252,6 +283,7 @@
                 pointsByWinner.set(wid, pts);
             }
 
+            saveUndoState();
             currentRonWinners.forEach((wid, index) => {
                 const w = players.find(x => x.id === wid);
                 const l = players.find(x => x.id === currentRonLoser);
@@ -321,6 +353,7 @@
                 // Dealer won
                 let valAll = readNonNegativePoints('tsumo-val-all');
                 if (valAll === null) return;
+                saveUndoState();
                 let payAmt = valAll + (honba * 100);
 
                 players.forEach(p => {
@@ -340,6 +373,7 @@
                 let valDealer = readNonNegativePoints('tsumo-val-dealer');
                 let valNon = readNonNegativePoints('tsumo-val-nondealer');
                 if (valDealer === null || valNon === null) return;
+                saveUndoState();
                 
                 players.forEach(p => {
                     if (p.id !== w.id) {
@@ -378,6 +412,7 @@
         }
 
         function submitRyuukyoku() {
+            saveUndoState();
             const count = currentTenpaiPlayers.length;
             let dealerTenpai = false;
 
@@ -409,6 +444,7 @@
 
         // --- TOCHUU RYUUKYOKU ---
         function submitTochuu() {
+            saveUndoState();
             closeModal();
             // Abortive draw: usually dealer stays, honba increases, riichi stays on table.
             nextHand(true); 
@@ -438,6 +474,7 @@
                 return;
             }
 
+            saveUndoState();
             const offender = players.find(p => p.id === currentChomboOffender);
             players.forEach(p => {
                 if (p.id === offender.id) return;
@@ -471,6 +508,7 @@
 
         function submitNagashi() {
             if (currentNagashiWinner === null) return;
+            saveUndoState();
             const w = players.find(x => x.id === currentNagashiWinner);
             
             // Mangan Tsumo base values
@@ -500,7 +538,8 @@
         }
 
         // --- END GAME ---
-        function endGame() {
+        function endGame(saveState = false) {
+            if (saveState) saveUndoState();
             closeModal();
             document.getElementById('screen-main').classList.remove('active');
             document.getElementById('screen-end').classList.add('active');
