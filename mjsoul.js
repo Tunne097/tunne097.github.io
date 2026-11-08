@@ -13,6 +13,7 @@
         let currentTsumoWinner = null;
         let currentTenpaiPlayers = [];
         let currentNagashiWinner = null;
+        let currentChomboOffender = null;
 
         // --- Core Functions ---
 
@@ -153,6 +154,7 @@
             if (modalId === 'modal-tsumo') populateTsumoModal();
             if (modalId === 'modal-ryuukyoku') populateRyuuModal();
             if (modalId === 'modal-nagashi') populateNagashiModal();
+            if (modalId === 'modal-chombo') populateChomboModal();
         }
 
         function closeModal() {
@@ -165,6 +167,7 @@
             currentTsumoWinner = null;
             currentTenpaiPlayers = [];
             currentNagashiWinner = null;
+            currentChomboOffender = null;
         }
 
         // --- RON ---
@@ -403,6 +406,45 @@
             closeModal();
             // Abortive draw: usually dealer stays, honba increases, riichi stays on table.
             nextHand(true); 
+        }
+
+        // --- CHOMBO ---
+        function populateChomboModal() {
+            const container = document.getElementById('chombo-offender-container');
+            container.innerHTML = '';
+            currentChomboOffender = null;
+
+            players.forEach(p => {
+                container.innerHTML += `
+                    <label class="cursor-pointer relative">
+                        <input type="radio" name="chombo-offender" class="hidden radio-loser" onchange="currentChomboOffender = ${p.id}">
+                        <div class="p-3 rounded-lg border border-slate-600 bg-slate-800/50 transition-colors text-center font-semibold text-slate-300">
+                            ${p.name} (${WINDS[p.currentWind]})
+                        </div>
+                    </label>
+                `;
+            });
+        }
+
+        function submitChombo() {
+            if (currentChomboOffender === null) {
+                showToast("Vui lòng chọn người phạm Chombo");
+                return;
+            }
+
+            const offender = players.find(p => p.id === currentChomboOffender);
+            players.forEach(p => {
+                if (p.id === offender.id) return;
+
+                const payment = offender.currentWind === 0
+                    ? 4000
+                    : p.currentWind === 0 ? 4000 : 2000;
+                p.score -= payment;
+                offender.score += payment;
+            });
+
+            closeModal();
+            nextHand(true);
         }
 
         // --- NAGASHI MANGAN ---

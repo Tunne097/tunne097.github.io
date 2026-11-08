@@ -275,10 +275,34 @@
                 <button onclick="openModal('modal-nagashi')" class="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl hover:bg-slate-700 text-left font-semibold text-emerald-400">
                     Nagashi Mangan
                 </button>
+                <button onclick="openModal('modal-chombo')" class="w-full p-3 bg-slate-800 border border-slate-600 rounded-xl hover:bg-slate-700 text-left font-semibold text-orange-300">
+                    Chombo (Mangan penalty)
+                </button>
                 <div class="h-px bg-slate-700 my-2"></div>
                 <button onclick="endGame()" class="w-full p-3 bg-red-900/30 border border-red-700 rounded-xl hover:bg-red-800/50 text-center font-bold text-red-400">
                     KẾT THÚC TRẬN ĐẤU SỚM
                 </button>
+            </div>
+        </div>
+
+        <!-- CHOMBO -->
+        <div id="modal-chombo" class="glass-modal rounded-2xl modal-content">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-orange-300">Chombo</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <p class="text-sm text-slate-300">
+                    Người phạm Chombo trả điểm tương đương Mangan Tsumo. Ván được lặp lại,
+                    dealer giữ vị trí và Honba tăng thêm 1.
+                </p>
+                <div>
+                    <label class="block text-sm font-semibold mb-3">Người phạm Chombo:</label>
+                    <div id="chombo-offender-container" class="grid grid-cols-2 gap-2"></div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+                <button onclick="submitChombo()" class="px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold">Xác nhận</button>
             </div>
         </div>
 
