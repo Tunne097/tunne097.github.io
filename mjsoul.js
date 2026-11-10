@@ -3,7 +3,8 @@
 
         // Game State
         let players = [];
-        let round = { wind: 0, hand: 1 }; // wind 0=East, hand 1-4
+        let isSanma = false;
+        let round = { wind: 0, hand: 1 }; // wind 0=East; hand count depends on game mode
         let honba = 0;
         let riichiPool = 0;
         let actionHistory = [];
@@ -48,6 +49,15 @@
             });
         }
 
+        function toggleGameMode() {
+            isSanma = !isSanma;
+            document.getElementById('gamemode-toggle').innerText = isSanma
+                ? 'Game mode: Sanma (3 players) · Switch to Yonma'
+                : 'Game mode: Yonma (4 players) · Switch to Sanma';
+            document.getElementById('gamemode-toggle').setAttribute('aria-pressed', String(isSanma));
+            document.getElementById('setup-p3').classList.toggle('hidden', isSanma);
+        }
+
         function rewind() {
             if (actionHistory.length === 0) {
                 showToast("Không có hành động để hoàn tác");
@@ -68,12 +78,13 @@
         }
 
         function startGame() {
+            const startingScore = isSanma ? 35000 : 25000;
             players = [
-                { id: 0, name: document.getElementById('p0-name').value || 'P1', score: 25000, startWind: 0, riichi: false },
-                { id: 1, name: document.getElementById('p1-name').value || 'P2', score: 25000, startWind: 1, riichi: false },
-                { id: 2, name: document.getElementById('p2-name').value || 'P3', score: 25000, startWind: 2, riichi: false },
-                { id: 3, name: document.getElementById('p3-name').value || 'P4', score: 25000, startWind: 3, riichi: false },
-            ];
+                { id: 0, name: document.getElementById('p0-name').value || 'P1', score: startingScore, startWind: 0, riichi: false },
+                { id: 1, name: document.getElementById('p1-name').value || 'P2', score: startingScore, startWind: 1, riichi: false },
+                { id: 2, name: document.getElementById('p2-name').value || 'P3', score: startingScore, startWind: 2, riichi: false },
+                { id: 3, name: document.getElementById('p3-name').value || 'P4', score: startingScore, startWind: 3, riichi: false },
+            ].slice(0, isSanma ? 3 : 4);
             
             // Set initial current winds identical to start wind
             players.forEach(p => p.currentWind = p.startWind);
@@ -85,6 +96,7 @@
 
             document.getElementById('screen-setup').classList.remove('active');
             document.getElementById('screen-main').classList.add('active');
+            document.getElementById('seat-p3').classList.toggle('hidden', isSanma);
             
             updateTableUI();
         }
@@ -96,21 +108,21 @@
             } else {
                 // Dealer rotates
                 round.hand++;
-                if (round.hand > 4) {
+                if (round.hand > players.length) {
                     round.hand = 1;
                     round.wind++;
                 }
 
                 // Rotate winds
                 players.forEach(p => {
-                    p.currentWind = (p.currentWind + 3) % 4; // Decrements wind value safely (East 0 -> North 3, etc.)
+                    p.currentWind = (p.currentWind + players.length - 1) % players.length;
                 });
                 
                 // Honba resets to 0 when dealer passes naturally, wait, usually honba transfers?
                 // Actually, Honba resets to 0 if non-dealer wins. Handled in specific resolution functions.
             }
 
-            const hasQualifyingScore = players.some(p => p.score > 30000);
+            const hasQualifyingScore = players.some(p => isSanma ? p.score >= 40000 : p.score > 30000);
             if ((round.wind >= 2 && hasQualifyingScore) || round.wind > 2) {
                 endGame();
                 return;
@@ -168,6 +180,7 @@
                 if (p.score < 0) scoreEl.classList.add('text-red-500');
                 else scoreEl.classList.remove('text-red-500');
             });
+            document.getElementById('seat-p3').classList.toggle('hidden', isSanma);
         }
 
         // --- Modals Logic ---
@@ -416,9 +429,9 @@
             const count = currentTenpaiPlayers.length;
             let dealerTenpai = false;
 
-            if (count > 0 && count < 4) {
+            if (count > 0 && count < players.length) {
                 let gain = 3000 / count;
-                let loss = 3000 / (4 - count);
+                let loss = 3000 / (players.length - count);
                 
                 players.forEach(p => {
                     if (currentTenpaiPlayers.includes(p.id)) {
@@ -428,7 +441,7 @@
                         p.score -= loss;
                     }
                 });
-            } else if (count === 4) {
+            } else if (count === players.length) {
                 dealerTenpai = true; // everyone tenpai, dealer stays
             }
 
@@ -494,6 +507,7 @@
         function populateNagashiModal() {
             const container = document.getElementById('nagashi-winner-container');
             container.innerHTML = '';
+            document.getElementById('nagashi-dealer-tenpai').checked = false;
             players.forEach(p => {
                 container.innerHTML += `
                     <label class="cursor-pointer relative">
@@ -510,6 +524,7 @@
             if (currentNagashiWinner === null) return;
             saveUndoState();
             const w = players.find(x => x.id === currentNagashiWinner);
+            const dealerTenpai = document.getElementById('nagashi-dealer-tenpai').checked;
             
             // Mangan Tsumo base values
             // Dealer wins: 4000 all. Non-dealer: 4000 dealer, 2000 others
@@ -522,8 +537,6 @@
                         w.score += 4000;
                     }
                 });
-                closeModal();
-                nextHand(true); // Dealer won/stayed
             } else {
                 players.forEach(p => {
                     if (p.id !== w.id) {
@@ -532,9 +545,10 @@
                         w.score += amt;
                     }
                 });
-                closeModal();
-                nextHand(false); // Dealer passed
             }
+
+            closeModal();
+            nextHand(dealerTenpai);
         }
 
         // --- END GAME ---

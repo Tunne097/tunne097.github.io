@@ -52,6 +52,10 @@
             display: flex;
         }
 
+        .table-grid {
+            width: min(100%, calc(100vh - 8rem));
+        }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -101,4 +105,3 @@
             background-color: rgba(234, 179, 8, 0.2);
             border-color: #eab308;
         }
-
