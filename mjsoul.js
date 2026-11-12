@@ -495,8 +495,8 @@
                 const payment = offender.currentWind === 0
                     ? 4000
                     : p.currentWind === 0 ? 4000 : 2000;
-                p.score -= payment;
-                offender.score += payment;
+                offender.score -= payment;
+                p.score += payment;
             });
 
             closeModal();
